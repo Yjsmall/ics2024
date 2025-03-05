@@ -133,10 +133,10 @@ static void decode_rm(Decode *s, int *rm_reg, word_t *rm_addr, int *reg, int wid
     }
 }
 
-#define Rr reg_read
-#define Rw reg_write
-#define Mr vaddr_read
-#define Mw vaddr_write
+#define Rr          reg_read
+#define Rw          reg_write
+#define Mr          vaddr_read
+#define Mw          vaddr_write
 #define RMr(reg, w) (reg != -1 ? Rr(reg, w) : Mr(addr, w))
 #define RMw(data)              \
     do {                       \

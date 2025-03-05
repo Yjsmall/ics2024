@@ -21,11 +21,11 @@
 // see page 26 of the manual above
 #define MEMORY_SIZE (16ull * 1024 * 1024 * 1024) // 16GB
 #define READ_BL_LEN 15
-#define BLOCK_LEN (1 << READ_BL_LEN)
-#define NR_BLOCK (MEMORY_SIZE / BLOCK_LEN)
+#define BLOCK_LEN   (1 << READ_BL_LEN)
+#define NR_BLOCK    (MEMORY_SIZE / BLOCK_LEN)
 #define C_SIZE_MULT 7 // only 3 bits
-#define MULT (1 << (C_SIZE_MULT + 2))
-#define C_SIZE (NR_BLOCK / MULT - 1)
+#define MULT        (1 << (C_SIZE_MULT + 2))
+#define C_SIZE      (NR_BLOCK / MULT - 1)
 
 // This is a simple hardware implementation of linux/drivers/mmc/host/bcm2835.c
 // No DMA and IRQ is supported, so the driver must be modified to start PIO
