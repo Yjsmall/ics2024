@@ -132,6 +132,7 @@ static bool make_token(char *e) {
 
 static bool check_parentheses(size_t r, size_t l) {
     int    parent_cnt = 0;
+    bool   main_operator_mode = false;
     size_t p = r;
     while (p <= l) {
         if (tokens[p].type == '(') {
@@ -143,24 +144,19 @@ static bool check_parentheses(size_t r, size_t l) {
         if (parent_cnt < 0) {
             Assert(0, "illegel expression!!!");
         }
+
+        if (parent_cnt == 0 && p < l) {
+            main_operator_mode = true;
+        }
         p++;
     }
+
     if (parent_cnt != 0) {
         Assert(0, "illegel expression!!!");
     }
 
-    p = r;
-    while (p <= l) {
-        if (tokens[p].type == '(') {
-            parent_cnt++;
-        }
-        if (tokens[p].type == ')') {
-            parent_cnt--;
-        }
-        if (parent_cnt == 0 && p < l) {
-            return false;
-        }
-        p++;
+    if (main_operator_mode) {
+        return false;
     }
 
     return true;
