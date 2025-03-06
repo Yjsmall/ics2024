@@ -17,9 +17,12 @@
 #include <cpu/cpu.h>
 #include <readline/readline.h>
 #include <readline/history.h>
+#include <stdio.h>
 #include <string.h>
 #include "sdb.h"
+#include "common.h"
 #include "debug.h"
+#include "memory/paddr.h"
 
 static int is_batch_mode = false;
 
@@ -80,6 +83,29 @@ static int cmd_info(char *args) {
     return 0;
 }
 
+static int cmd_x(char *args) {
+    Log("x args is args: %s\n", args);
+    int size, addr;
+
+    int result = sscanf(args, "%d 0x%x", &size, &addr);
+
+    if (result == 2) {
+        for (int i = 0; i < size; i += 4, addr += 4) {
+            printf(FMT_PADDR ": ", addr + i);
+            word_t   paddr = paddr_read(addr, 4);
+            uint8_t *ptr = (uint8_t *)&paddr;
+
+            for (int j = 0; j < 4; j++) {
+                printf("%02x ", ptr[j]);
+            }
+            printf("\n");
+        }
+    } else {
+        printf("Failed to parse the string.\n");
+    }
+    return 0;
+}
+
 static int cmd_help(char *args);
 
 static struct {
@@ -92,6 +118,7 @@ static struct {
     {"q",    "Exit NEMU",                                        cmd_q   },
     {"si",   "Execute instructions",                             cmd_si  },
     {"info", "Print program status",                             cmd_info},
+    {"x",    "Scan memory",                                      cmd_x   }
 
     /* TODO: Add more commands */
 };
