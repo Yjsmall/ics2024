@@ -17,7 +17,9 @@
 #include <cpu/cpu.h>
 #include <readline/readline.h>
 #include <readline/history.h>
+#include <string.h>
 #include "sdb.h"
+#include "debug.h"
 
 static int is_batch_mode = false;
 
@@ -52,6 +54,24 @@ static int cmd_q(char *args) {
     return -1;
 }
 
+static int cmd_si(char *args) {
+    if (args == NULL) {
+        cpu_exec(1);
+        return 0;
+    }
+
+    char *endptr;
+    long  num = strtol(args, &endptr, 10);
+
+    if (*endptr != '\0') {
+        Log("The string is not a valid integer.\n");
+    } else {
+        cpu_exec(num);
+    }
+
+    return 0;
+}
+
 static int cmd_help(char *args);
 
 static struct {
@@ -62,6 +82,7 @@ static struct {
     {"help", "Display information about all supported commands", cmd_help},
     {"c",    "Continue the execution of the program",            cmd_c   },
     {"q",    "Exit NEMU",                                        cmd_q   },
+    {"si",   "Execute instructions",                             cmd_si  },
 
     /* TODO: Add more commands */
 };
