@@ -13,33 +13,38 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
+#include "common.h"
+#include "debug.h"
 #include <isa.h>
 
 /* We use the POSIX regex functions to process regular expressions.
  * Type 'man regex' for more information about POSIX regex functions.
  */
 #include <regex.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <string.h>
 
 enum {
     TK_NOTYPE = 256,
     TK_EQ,
-
-    /* TODO: Add more token types */
-
+    TK_INTEGER,
 };
 
 static struct rule {
     const char *regex;
     int         token_type;
 } rules[] = {
-
-    /* TODO: Add more rules.
-   * Pay attention to the precedence level of different rules.
-   */
-
-    {" +",  TK_NOTYPE}, // spaces
-    {"\\+", '+'      }, // plus
-    {"==",  TK_EQ    }, // equal
+    {" +",     TK_NOTYPE },
+    {"[0-9]+", TK_INTEGER},
+    {"\\(",    '('       },
+    {"\\)",    ')'       },
+    {"\\+",    '+'       },
+    {"\\-",    '-'       },
+    {"\\*",    '*'       },
+    {"\\/",    '/'       },
+    {"==",     TK_EQ     },
 };
 
 #define NR_REGEX ARRLEN(rules)
@@ -90,15 +95,28 @@ static bool make_token(char *e) {
 
                 position += substr_len;
 
-                /* TODO: Now a new token is recognized with rules[i]. Add codes
-         * to record the token in the array `tokens'. For certain types
-         * of tokens, some extra actions should be performed.
-         */
-
-                switch (rules[i].token_type) {
-                default: TODO();
+                if (rules[i].token_type == TK_NOTYPE) {
+                    break;
                 }
 
+                switch (rules[i].token_type) {
+                    case TK_INTEGER:
+                        strncpy(tokens[nr_token].str, substr_start, substr_len);
+                        tokens[nr_token].str[substr_len] = '\0';
+                        tokens[nr_token].type = rules[i].token_type;
+                        break;
+                    case '+':
+                    case '-':
+                    case '*':
+                    case '/':
+                    case '(':
+                    case ')':
+                        tokens[nr_token].type = rules[i].token_type;
+                        break;
+                    default: TODO();
+                }
+
+                nr_token++;
                 break;
             }
         }
@@ -112,14 +130,48 @@ static bool make_token(char *e) {
     return true;
 }
 
+static bool check_parentheses(size_t r, size_t l) {
+    int    parent_cnt = 0;
+    size_t p = r;
+    while (p <= l) {
+        if (tokens[p].type == '(') {
+            parent_cnt++;
+        }
+        if (tokens[p].type == ')') {
+            parent_cnt--;
+        }
+        if (parent_cnt < 0) {
+            Assert(0, "illegel expression!!!");
+        }
+        p++;
+    }
+    if (parent_cnt != 0) {
+        Assert(0, "illegel expression!!!");
+    }
+
+    p = r;
+    while (p <= l) {
+        if (tokens[p].type == '(') {
+            parent_cnt++;
+        }
+        if (tokens[p].type == ')') {
+            parent_cnt--;
+        }
+        if (parent_cnt == 0 && p < l) {
+            return false;
+        }
+        p++;
+    }
+
+    return true;
+}
+
 word_t expr(char *e, bool *success) {
     if (!make_token(e)) {
         *success = false;
         return 0;
     }
 
-    /* TODO: Insert codes to evaluate the expression. */
-    TODO();
-
+    *success = true;
     return 0;
 }

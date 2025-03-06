@@ -106,6 +106,18 @@ static int cmd_x(char *args) {
     return 0;
 }
 
+static int cmd_p(char *args) {
+    Log("p args is args: %s\n", args);
+    bool success;
+    expr(args, &success);
+    if (success) {
+        Log("expr pass\n");
+    } else {
+        Log("oh no expr fail\n");
+    }
+    return 0;
+}
+
 static int cmd_help(char *args);
 
 static struct {
@@ -118,7 +130,8 @@ static struct {
     {"q",    "Exit NEMU",                                        cmd_q   },
     {"si",   "Execute instructions",                             cmd_si  },
     {"info", "Print program status",                             cmd_info},
-    {"x",    "Scan memory",                                      cmd_x   }
+    {"x",    "Scan memory",                                      cmd_x   },
+    {"p",    "expression evaluation",                            cmd_p   },
 
     /* TODO: Add more commands */
 };
