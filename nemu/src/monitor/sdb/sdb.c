@@ -108,10 +108,10 @@ static int cmd_x(char *args) {
 
 static int cmd_p(char *args) {
     Log("p args is args: %s\n", args);
-    bool success;
-    expr(args, &success);
+    bool   success;
+    word_t result = expr(args, &success);
     if (success) {
-        Log("expr pass\n");
+        printf("%s = %d\n", args, result);
     } else {
         Log("oh no expr fail\n");
     }

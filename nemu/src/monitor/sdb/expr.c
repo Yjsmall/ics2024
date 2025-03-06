@@ -162,6 +162,52 @@ static bool check_parentheses(size_t r, size_t l) {
     return true;
 }
 
+size_t op_pos(size_t p, size_t q) {
+    int par_cnt = 0;
+    int op_idx = -1;
+    while (p < q) {
+        if (tokens[p].type == '(') {
+            par_cnt++;
+        } else if (tokens[p].type == ')') {
+            par_cnt--;
+        } else if (par_cnt == 0) {
+            if (tokens[p].type == '+' || tokens[p].type == '-') {
+                op_idx = p;
+            } else if (tokens[p].type == '*' || tokens[p].type == '/') {
+                op_idx = p;
+            }
+        }
+
+        p++;
+    }
+    return op_idx;
+}
+
+word_t eval(size_t p, size_t q) {
+    if (p > q) {
+        Assert(0, "Invalid expressions");
+    } else if (p == q) {
+        return atoi(tokens[p].str);
+    } else if (check_parentheses(p, q) == true) {
+        return eval(p + 1, q - 1);
+    } else {
+        size_t op_idx = op_pos(p, q);
+        word_t val1 = eval(p, op_idx - 1);
+        word_t val2 = eval(op_idx + 1, q);
+        switch (tokens[op_idx].type) {
+            case '+': return val1 + val2;
+            case '-': return val1 - val2;
+            case '*': return val1 * val2;
+            case '/':
+                Assert(val2 != 0, "ZeroDivisionError: division by zero");
+                return val1 / val2;
+            default: TODO();
+        }
+    }
+
+    return 0;
+}
+
 word_t expr(char *e, bool *success) {
     if (!make_token(e)) {
         *success = false;
@@ -169,5 +215,5 @@ word_t expr(char *e, bool *success) {
     }
 
     *success = true;
-    return 0;
+    return eval(0, nr_token - 1);
 }
