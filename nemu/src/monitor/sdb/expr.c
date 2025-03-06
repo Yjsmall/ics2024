@@ -16,6 +16,7 @@
 #include "common.h"
 #include "debug.h"
 #include <isa.h>
+#include <stdlib.h>
 
 /* We use the POSIX regex functions to process regular expressions.
  * Type 'man regex' for more information about POSIX regex functions.
@@ -70,13 +71,74 @@ void init_regex() {
 
 typedef struct token {
     int  type;
-    char str[32];
+    char *str;
+    int  str_capacity; 
 } Token;
 
-static Token tokens[32] __attribute__((used)) = {};
+#define INIT_TOKEN_CAPACITY 32
+#define INIT_STR_CAPACITY   32
+
+static Token *tokens __attribute__((used)) = NULL;
+static int    tokens_capacity = 0; 
 static int   nr_token __attribute__((used)) = 0;
 
+static void init_tokens() {
+    if (tokens_capacity == 0) {
+        tokens_capacity = INIT_TOKEN_CAPACITY;
+        tokens = malloc(tokens_capacity * sizeof(Token));
+        Assert(tokens != NULL, "Failed to allocate memory for tokens");
+        for (int i = 0; i < tokens_capacity; i++) {
+            tokens[i].str = malloc(INIT_STR_CAPACITY);
+            tokens[i].str_capacity = INIT_STR_CAPACITY;
+            tokens[i].str[0] = '\0'; 
+        }
+    }
+}
+
+static void reset_tokens() {
+    if (tokens) {
+        for (int i = 0; i < tokens_capacity; i++) {
+            free(tokens[i].str);
+        }
+        free(tokens);
+        tokens = NULL;
+        tokens_capacity = 0;
+    }
+    nr_token = 0;
+}
+
+static bool expand_tokens_array() {
+    int new_capacity = tokens_capacity * 2;
+    Token *new_tokens = realloc(tokens, new_capacity * sizeof(Token));
+    if (!new_tokens) return false;
+
+    for (int i = tokens_capacity; i < new_capacity; i++) {
+        new_tokens[i].str = malloc(INIT_STR_CAPACITY);
+        new_tokens[i].str_capacity = INIT_STR_CAPACITY;
+        new_tokens[i].str[0] = '\0';
+    }
+
+    tokens = new_tokens;
+    tokens_capacity = new_capacity;
+    return true;
+}
+
+static bool expand_str(Token *token, int required_len) {
+    int new_capacity = token->str_capacity;
+    while (new_capacity < required_len) {
+        new_capacity *= 2;
+    }
+
+    char *new_str = realloc(token->str, new_capacity);
+    if (!new_str) return false;
+
+    token->str = new_str;
+    token->str_capacity = new_capacity;
+    return true;
+}
+
 static bool make_token(char *e) {
+    init_tokens();
     int        position = 0;
     int        i;
     regmatch_t pmatch;
@@ -99,8 +161,21 @@ static bool make_token(char *e) {
                     break;
                 }
 
+                if (nr_token >= tokens_capacity) {
+                    if (!expand_tokens_array()) {
+                        reset_tokens();
+                        Assert(0, "Failed to expand tokens array");
+                    }
+                }
+
                 switch (rules[i].token_type) {
                     case TK_INTEGER:
+                        if (substr_len > tokens[nr_token].str_capacity) {
+                            if (!expand_str(&tokens[nr_token], substr_len + 1)) {
+                                reset_tokens();
+                                Assert(0, "Failed to expand string");
+                            }
+                        }
                         strncpy(tokens[nr_token].str, substr_start, substr_len);
                         tokens[nr_token].str[substr_len] = '\0';
                         tokens[nr_token].type = rules[i].token_type;
@@ -215,5 +290,7 @@ word_t expr(char *e, bool *success) {
     }
 
     *success = true;
-    return eval(0, nr_token - 1);
+    word_t result = eval(0, nr_token - 1);
+    reset_tokens();
+    return result;
 }
