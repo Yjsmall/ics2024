@@ -1,0 +1,43 @@
+---
+Language: Cpp
+BasedOnStyle: LLVM
+
+# 缩进设置
+TabWidth: 4          # Tab 显示为 4 字符宽度
+IndentWidth: 4       # 缩进使用 4 个空格
+UseTab: Never        # 完全用空格代替 Tab
+
+# 结构体/数组对齐
+AlignArrayOfStructures: Left   # 结构体数组元素左对齐（需 clang-format 13+）
+AlignConsecutiveDeclarations: true  # 禁止对齐连续声明
+
+# Switch 语句风格
+AllowShortCaseLabelsOnASingleLine: true  # 允许 case 和语句在同一行
+BreakBeforeBraces: Custom                # 自定义大括号换行规则
+BraceWrapping:
+  AfterCaseLabel: false   # case 后不换行（直接跟代码）
+
+# 注释与头文件
+ReflowComments: false     # 不重新排版注释
+SortIncludes: Never       # 禁止头文件排序
+
+# 其他
+ColumnLimit: 0            # 禁用行宽限制（允许任意长度单行）
+AllowShortBlocksOnASingleLine: true  # 允许简单代码块在一行
+
+AlignConsecutiveShortCaseStatements:
+  Enabled: true
+  AcrossEmptyLines: true
+  AcrossComments: true
+  AlignCaseColons: true
+
+AllowShortEnumsOnASingleLine: true
+AlignConsecutiveMacros: Consecutive
+
+# 禁止在尖括号内添加空格（针对路径）
+SpacesInAngles: Never
+
+# 禁止在连续尖括号间添加空格
+SpaceAfterTemplateKeyword: false
+
+IndentCaseLabels: true

@@ -1,0 +1,4 @@
+CompileFlags:
+  Add: 
+    - -std=c99         # 启用 C99 标准
+    - -I./include      
