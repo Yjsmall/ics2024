@@ -31,6 +31,8 @@ enum {
     TK_NOTYPE = 256,
     TK_EQ,
     TK_INTEGER,
+    TK_DEF,
+    TK_NEG,
 };
 
 static struct rule {
@@ -139,6 +141,14 @@ static bool expand_str(Token *token, int required_len) {
     return true;
 }
 
+static bool unary_op(size_t p) {
+    char *match = "+-*/(";
+    if (p == 0 || strchr(match, tokens[p - 1].type) != NULL) {
+        return true;
+    }
+    return false;
+}
+
 static bool make_token(char *e) {
     init_tokens();
     int        position = 0;
@@ -183,12 +193,24 @@ static bool make_token(char *e) {
                         tokens[nr_token].type = rules[i].token_type;
                         break;
                     case '+':
-                    case '-':
-                    case '*':
                     case '/':
                     case '(':
                     case ')':
                         tokens[nr_token].type = rules[i].token_type;
+                        break;
+                    case '-':
+                        if (unary_op(nr_token)) {
+                            tokens[nr_token].type = TK_NEG;
+                        } else {
+                            tokens[nr_token].type = rules[i].token_type;
+                        }
+                        break;
+                    case '*':
+                        if (unary_op(nr_token)) {
+                            tokens[nr_token].type = TK_DEF;
+                        } else {
+                            tokens[nr_token].type = rules[i].token_type;
+                        }
                         break;
                     default: TODO();
                 }
