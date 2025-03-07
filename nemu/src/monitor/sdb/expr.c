@@ -70,17 +70,17 @@ void init_regex() {
 }
 
 typedef struct token {
-    int  type;
+    int   type;
     char *str;
-    int  str_capacity; 
+    int   str_capacity;
 } Token;
 
 #define INIT_TOKEN_CAPACITY 32
 #define INIT_STR_CAPACITY   32
 
 static Token *tokens __attribute__((used)) = NULL;
-static int    tokens_capacity = 0; 
-static int   nr_token __attribute__((used)) = 0;
+static int    tokens_capacity = 0;
+static int    nr_token __attribute__((used)) = 0;
 
 static void init_tokens() {
     if (tokens_capacity == 0) {
@@ -90,7 +90,7 @@ static void init_tokens() {
         for (int i = 0; i < tokens_capacity; i++) {
             tokens[i].str = malloc(INIT_STR_CAPACITY);
             tokens[i].str_capacity = INIT_STR_CAPACITY;
-            tokens[i].str[0] = '\0'; 
+            tokens[i].str[0] = '\0';
         }
     }
 }
@@ -108,9 +108,10 @@ static void reset_tokens() {
 }
 
 static bool expand_tokens_array() {
-    int new_capacity = tokens_capacity * 2;
+    int    new_capacity = tokens_capacity * 2;
     Token *new_tokens = realloc(tokens, new_capacity * sizeof(Token));
-    if (!new_tokens) return false;
+    if (!new_tokens)
+        return false;
 
     for (int i = tokens_capacity; i < new_capacity; i++) {
         new_tokens[i].str = malloc(INIT_STR_CAPACITY);
@@ -130,7 +131,8 @@ static bool expand_str(Token *token, int required_len) {
     }
 
     char *new_str = realloc(token->str, new_capacity);
-    if (!new_str) return false;
+    if (!new_str)
+        return false;
 
     token->str = new_str;
     token->str_capacity = new_capacity;
@@ -238,8 +240,9 @@ static bool check_parentheses(size_t r, size_t l) {
 }
 
 size_t op_pos(size_t p, size_t q) {
-    int par_cnt = 0;
-    int op_idx = -1;
+    int  par_cnt = 0;
+    int  op_idx = -1;
+    bool get_op = false;
     while (p < q) {
         if (tokens[p].type == '(') {
             par_cnt++;
@@ -248,8 +251,11 @@ size_t op_pos(size_t p, size_t q) {
         } else if (par_cnt == 0) {
             if (tokens[p].type == '+' || tokens[p].type == '-') {
                 op_idx = p;
+                get_op = true;
             } else if (tokens[p].type == '*' || tokens[p].type == '/') {
-                op_idx = p;
+                if (!get_op) {
+                    op_idx = p;
+                }
             }
         }
 
@@ -275,7 +281,7 @@ word_t eval(size_t p, size_t q) {
             case '*': return val1 * val2;
             case '/':
                 Assert(val2 != 0, "ZeroDivisionError: division by zero");
-                return val1 / val2;
+                return (sword_t)val1 / (sword_t)val2;
             default: TODO();
         }
     }
