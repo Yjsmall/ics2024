@@ -208,9 +208,76 @@ void sdb_mainloop() {
     }
 }
 
+void test_expr() {
+    // 获取 NEMU_HOME 环境变量
+    char *nemu_home = getenv("NEMU_HOME");
+    if (nemu_home == NULL) {
+        Log("NEMU_HOME environment variable is not set!\n");
+        return;
+    }
+
+    // 构建 gen-expr 的路径和命令
+    char cmd[256];
+    snprintf(cmd, sizeof(cmd), "cd %s/tools/gen-expr && make gen-expr && ./gen-expr 10 > input", nemu_home);
+
+    // 执行命令生成测试用例
+    int ret = system(cmd);
+    if (ret != 0) {
+        Log("Failed to generate test cases!\n");
+        return;
+    }
+
+    // 构建输入文件的完整路径
+    char input_path[256];
+    snprintf(input_path, sizeof(input_path), "%s/tools/gen-expr/input", nemu_home);
+
+    // 打开输入文件
+    FILE *fp = fopen(input_path, "r");
+    if (fp == NULL) {
+        Log("Failed to open test cases file!\n");
+        return;
+    }
+
+    // 读取并测试每个表达式
+    uint32_t result;
+    char     s[65536];
+    int      pass = 0, total = 0;
+
+    while (fscanf(fp, "%u %[^\n]", &result, s) == 2) {
+        total++;
+        bool   success;
+        word_t my_result = expr(s, &success);
+
+        if (!success) {
+            printf("Failed to evaluate expression: %s\n", s);
+            continue;
+        }
+
+        if (my_result != result) {
+            printf("Wrong Answer at case %d:\n", total);
+            printf("Expression: %s\n", s);
+            printf("Exp: %u\n", result);
+            printf("Got: %u\n\n", my_result);
+        } else {
+            pass++;
+        }
+    }
+
+    fclose(fp);
+
+    printf("Test complete: %d/%d passed\n", pass, total);
+    if (pass != total) {
+        printf("Some test cases failed!\n");
+    } else {
+        printf("All test cases passed!\n");
+    }
+}
+
 void init_sdb() {
     /* Compile the regular expressions. */
     init_regex();
+
+    test_expr();
 
     /* Initialize the watchpoint pool. */
     init_wp_pool();
