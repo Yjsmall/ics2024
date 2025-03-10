@@ -35,22 +35,24 @@ enum {
     TK_HEX,
     TK_DEF,
     TK_NEG,
+    TK_REG,
 };
 
 static struct rule {
     const char *regex;
     int         token_type;
 } rules[] = {
-    {" +",             TK_NOTYPE },
-    {"0x[0-9a-fA-F]+", TK_HEX    },
-    {"[0-9]+",         TK_INTEGER},
-    {"\\(",            '('       },
-    {"\\)",            ')'       },
-    {"\\+",            '+'       },
-    {"\\-",            '-'       },
-    {"\\*",            '*'       },
-    {"\\/",            '/'       },
-    {"==",             TK_EQ     },
+    {" +",                                       TK_NOTYPE },
+    {"0x[0-9a-fA-F]+",                           TK_HEX    },
+    {"[0-9]+",                                   TK_INTEGER},
+    {"(\\$0|ra|sp|gp|tp|t[0-6]|s[0-11]|a[0-7])", TK_REG    },
+    {"\\(",                                      '('       },
+    {"\\)",                                      ')'       },
+    {"\\+",                                      '+'       },
+    {"\\-",                                      '-'       },
+    {"\\*",                                      '*'       },
+    {"\\/",                                      '/'       },
+    {"==",                                       TK_EQ     },
 };
 
 #define NR_REGEX ARRLEN(rules)
@@ -184,6 +186,7 @@ static bool make_token(char *e) {
                 }
 
                 switch (rules[i].token_type) {
+                    case TK_REG:
                     case TK_HEX:
                     case TK_INTEGER:
                         if (substr_len > tokens[nr_token].str_capacity) {
@@ -294,6 +297,15 @@ word_t eval(size_t p, size_t q) {
     if (p > q) {
         Assert(0, "Invalid expressions");
     } else if (p == q) {
+        if (tokens[p].type == TK_REG) {
+            bool   success = false;
+            word_t res = isa_reg_str2val(tokens[p].str, &success);
+            if (!success) {
+                Assert(0, "Invalid reg name");
+            }
+            return res;
+        }
+
         char    *endptr;
         long int res;
         if (tokens[p].type == TK_HEX) {
