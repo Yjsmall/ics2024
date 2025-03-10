@@ -43,18 +43,18 @@ static struct rule {
     const char *regex;
     int         token_type;
 } rules[] = {
-    {" +",                                       TK_NOTYPE },
-    {"0x[0-9a-fA-F]+",                           TK_HEX    },
-    {"[0-9]+",                                   TK_INTEGER},
-    {"(\\$0|ra|sp|gp|tp|t[0-6]|s[0-11]|a[0-7])", TK_REG    },
-    {"\\(",                                      '('       },
-    {"\\)",                                      ')'       },
-    {"\\+",                                      '+'       },
-    {"\\-",                                      '-'       },
-    {"\\*",                                      '*'       },
-    {"\\/",                                      '/'       },
-    {"==",                                       TK_EQ     },
-    {"!=",                                       TK_NE     },
+    {" +",                                          TK_NOTYPE },
+    {"0x[0-9a-fA-F]+",                              TK_HEX    },
+    {"[0-9]+",                                      TK_INTEGER},
+    {"\\$(\\$0|ra|sp|gp|tp|t[0-6]|s[0-11]|a[0-7])", TK_REG    },
+    {"\\(",                                         '('       },
+    {"\\)",                                         ')'       },
+    {"\\+",                                         '+'       },
+    {"\\-",                                         '-'       },
+    {"\\*",                                         '*'       },
+    {"\\/",                                         '/'       },
+    {"==",                                          TK_EQ     },
+    {"!=",                                          TK_NE     },
 };
 
 #define NR_REGEX ARRLEN(rules)
@@ -308,7 +308,7 @@ word_t eval(size_t p, size_t q) {
     } else if (p == q) {
         if (tokens[p].type == TK_REG) {
             bool   success = false;
-            word_t res = isa_reg_str2val(tokens[p].str, &success);
+            word_t res = isa_reg_str2val(tokens[p].str + 1, &success);
             if (!success) {
                 Assert(0, "Invalid reg name");
             }
