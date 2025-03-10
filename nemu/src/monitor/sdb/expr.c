@@ -31,6 +31,7 @@
 enum {
     TK_NOTYPE = 256,
     TK_EQ,
+    TK_NE,
     TK_INTEGER,
     TK_HEX,
     TK_DEF,
@@ -53,6 +54,7 @@ static struct rule {
     {"\\*",                                      '*'       },
     {"\\/",                                      '/'       },
     {"==",                                       TK_EQ     },
+    {"!=",                                       TK_NE     },
 };
 
 #define NR_REGEX ARRLEN(rules)
@@ -203,6 +205,8 @@ static bool make_token(char *e) {
                     case '/':
                     case '(':
                     case ')':
+                    case TK_EQ:
+                    case TK_NE:
                         tokens[nr_token].type = rules[i].token_type;
                         break;
                     case '-':
@@ -269,9 +273,9 @@ static bool check_parentheses(size_t r, size_t l) {
 }
 
 int op_pos(size_t p, size_t q) {
-    int  par_cnt = 0;
-    int  op_idx = -1;
-    bool get_op = false;
+    int par_cnt = 0;
+    int op_idx = -1;
+    int min_priority = 99;
     while (p < q) {
         if (tokens[p].type == '(') {
             par_cnt++;
@@ -279,10 +283,15 @@ int op_pos(size_t p, size_t q) {
             par_cnt--;
         } else if (par_cnt == 0) {
             if (tokens[p].type == '+' || tokens[p].type == '-') {
-                op_idx = p;
-                get_op = true;
+                if (1 <= min_priority) {
+                    op_idx = p;
+                }
             } else if (tokens[p].type == '*' || tokens[p].type == '/') {
-                if (!get_op) {
+                if (2 <= min_priority) {
+                    op_idx = p;
+                }
+            } else if (tokens[p].type == TK_EQ || tokens[p].type == TK_NE) {
+                if (3 <= min_priority) {
                     op_idx = p;
                 }
             }
@@ -313,7 +322,7 @@ word_t eval(size_t p, size_t q) {
         } else {
             res = strtol(tokens[p].str, &endptr, 10);
         }
-        // 以16进制方式转换
+
         if (*endptr != '\0') {
             Assert(0, "Conversion failed.\n");
         }
@@ -332,6 +341,7 @@ word_t eval(size_t p, size_t q) {
                 return -eval(p + 1, q);
             }
         }
+
         word_t val1 = eval(p, op_idx - 1);
         word_t val2 = eval(op_idx + 1, q);
         switch (tokens[op_idx].type) {
@@ -341,7 +351,10 @@ word_t eval(size_t p, size_t q) {
             case '/':
                 Assert(val2 != 0, "ZeroDivisionError: division by zero");
                 return (sword_t)val1 / (sword_t)val2;
-            default: TODO();
+
+            case TK_EQ: return val1 == val2;
+            case TK_NE: return val1 != val2;
+            default   : TODO();
         }
     }
 
