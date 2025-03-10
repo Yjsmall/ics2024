@@ -15,6 +15,7 @@
 
 #include "common.h"
 #include "debug.h"
+#include "memory/paddr.h"
 #include <isa.h>
 #include <stdlib.h>
 
@@ -261,7 +262,7 @@ static bool check_parentheses(size_t r, size_t l) {
     return true;
 }
 
-size_t op_pos(size_t p, size_t q) {
+int op_pos(size_t p, size_t q) {
     int  par_cnt = 0;
     int  op_idx = -1;
     bool get_op = false;
@@ -294,7 +295,17 @@ word_t eval(size_t p, size_t q) {
     } else if (check_parentheses(p, q) == true) {
         return eval(p + 1, q - 1);
     } else {
-        size_t op_idx = op_pos(p, q);
+        int op_idx = op_pos(p, q);
+
+        if (op_idx == -1) {
+            if (tokens[p].type == TK_DEF) {
+                word_t addr = eval(p + 1, q);
+                return paddr_read(addr, 4);
+            }
+            if (tokens[p].type == TK_NEG) {
+                return -eval(p + 1, q);
+            }
+        }
         word_t val1 = eval(p, op_idx - 1);
         word_t val2 = eval(op_idx + 1, q);
         switch (tokens[op_idx].type) {
