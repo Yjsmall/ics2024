@@ -32,6 +32,7 @@ enum {
     TK_NOTYPE = 256,
     TK_EQ,
     TK_INTEGER,
+    TK_HEX,
     TK_DEF,
     TK_NEG,
 };
@@ -40,15 +41,16 @@ static struct rule {
     const char *regex;
     int         token_type;
 } rules[] = {
-    {" +",     TK_NOTYPE },
-    {"[0-9]+", TK_INTEGER},
-    {"\\(",    '('       },
-    {"\\)",    ')'       },
-    {"\\+",    '+'       },
-    {"\\-",    '-'       },
-    {"\\*",    '*'       },
-    {"\\/",    '/'       },
-    {"==",     TK_EQ     },
+    {" +",             TK_NOTYPE },
+    {"0x[0-9a-fA-F]+", TK_HEX    },
+    {"[0-9]+",         TK_INTEGER},
+    {"\\(",            '('       },
+    {"\\)",            ')'       },
+    {"\\+",            '+'       },
+    {"\\-",            '-'       },
+    {"\\*",            '*'       },
+    {"\\/",            '/'       },
+    {"==",             TK_EQ     },
 };
 
 #define NR_REGEX ARRLEN(rules)
@@ -182,6 +184,7 @@ static bool make_token(char *e) {
                 }
 
                 switch (rules[i].token_type) {
+                    case TK_HEX:
                     case TK_INTEGER:
                         if (substr_len > tokens[nr_token].str_capacity) {
                             if (!expand_str(&tokens[nr_token], substr_len + 1)) {
@@ -291,7 +294,18 @@ word_t eval(size_t p, size_t q) {
     if (p > q) {
         Assert(0, "Invalid expressions");
     } else if (p == q) {
-        return atoi(tokens[p].str);
+        char    *endptr;
+        long int res;
+        if (tokens[p].type == TK_HEX) {
+            res = strtol(tokens[p].str, &endptr, 16);
+        } else {
+            res = strtol(tokens[p].str, &endptr, 10);
+        }
+        // 以16进制方式转换
+        if (*endptr != '\0') {
+            Assert(0, "Conversion failed.\n");
+        }
+        return res;
     } else if (check_parentheses(p, q) == true) {
         return eval(p + 1, q - 1);
     } else {
