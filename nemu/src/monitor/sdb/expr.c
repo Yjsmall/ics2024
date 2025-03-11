@@ -284,14 +284,17 @@ int op_pos(size_t p, size_t q) {
         } else if (par_cnt == 0) {
             if (tokens[p].type == '+' || tokens[p].type == '-') {
                 if (1 <= min_priority) {
+                    min_priority = 1;
                     op_idx = p;
                 }
             } else if (tokens[p].type == '*' || tokens[p].type == '/') {
                 if (2 <= min_priority) {
+                    min_priority = 2;
                     op_idx = p;
                 }
             } else if (tokens[p].type == TK_EQ || tokens[p].type == TK_NE) {
                 if (3 <= min_priority) {
+                    min_priority = 3;
                     op_idx = p;
                 }
             }
