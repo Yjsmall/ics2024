@@ -21,7 +21,8 @@ typedef struct watchpoint {
     int                NO;
     struct watchpoint *next;
 
-    /* TODO: Add more members if necessary */
+    char   str[64];
+    word_t old_val;
 
 } WP;
 
@@ -39,4 +40,76 @@ void init_wp_pool() {
     free_ = wp_pool;
 }
 
-/* TODO: Implement the functionality of watchpoint */
+void add_wp(char *str) {
+    Assert(free_ != NULL, "sorry, no free memory for new watchpoint");
+
+    bool    success = false;
+    sword_t value = expr(str, &success);
+    if (!success) {
+        printf("error: wrong expression %s\n", str);
+        return;
+    }
+
+    WP *ptr = free_;
+    free_ = free_->next;
+    int str_length = strlen(str);
+    strncpy(ptr->str, str, str_length);
+    ptr->str[str_length] = '\0';
+    ptr->old_val = value;
+
+    ptr->next = head;
+    head = ptr;
+
+    printf("Watchpoint %d: %s\n", ptr->NO, ptr->str);
+}
+
+void del_wp(int no) {
+    WP dummy;
+    dummy.next = head;
+    WP *ptr = &dummy;
+    while (ptr->next) {
+        if (ptr->next->NO == no) {
+            WP *tmp = ptr->next;
+            ptr->next = tmp->next;
+            tmp->next = free_;
+            free_ = tmp;
+            break;
+        }
+        ptr = ptr->next;
+    }
+    head = dummy.next;
+}
+
+int update_wp() {
+    int n_changed = 0;
+    WP *ptr = head;
+    while (ptr != NULL) {
+        bool   success = false;
+        word_t value = expr(ptr->str, &success);
+        Assert(success, "wrong expression %s\n", ptr->str);
+
+        if (value != ptr->old_val) {
+            n_changed += 1;
+            printf("Watchpoint %d: %s\n", ptr->NO, ptr->str);
+            printf("				Old value = 0x%08x(%d)\n", ptr->old_val, ptr->old_val);
+            printf("				New value = 0x%08x(%d)\n", value, value);
+            ptr->old_val = value;
+        }
+        ptr = ptr->next;
+    }
+    return n_changed;
+}
+
+void print_wp() {
+    if (head == NULL) {
+        printf("No watchpoints.\n");
+        return;
+    }
+
+    printf("Num\t\tWhat\n");
+    WP *ptr = head;
+    while (ptr) {
+        printf("%d\t\t%s\n", ptr->NO, ptr->str);
+        ptr = ptr->next;
+    }
+}

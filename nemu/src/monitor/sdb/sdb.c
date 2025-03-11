@@ -28,6 +28,9 @@ static int is_batch_mode = false;
 
 void init_regex();
 void init_wp_pool();
+void add_wp(char *expr);
+void del_wp(int no);
+void print_wp();
 
 /* We use the `readline' library to provide more flexibility to read from stdin. */
 static char *rl_gets() {
@@ -80,6 +83,10 @@ static int cmd_info(char *args) {
     if (strcmp(args, "r") == 0) {
         isa_reg_display();
     }
+
+    if (strcmp(args, "w") == 0) {
+        print_wp();
+    }
     return 0;
 }
 
@@ -118,6 +125,19 @@ static int cmd_p(char *args) {
     return 0;
 }
 
+static int cmd_w(char *args) {
+    Log("w args is args: %s\n", args);
+    add_wp(args);
+    return 0;
+}
+
+static int cmd_d(char *args) {
+    Log("d args is args: %s\n", args);
+    int no = atoi(args);
+    del_wp(no);
+    return 0;
+}
+
 static int cmd_help(char *args);
 
 static struct {
@@ -132,6 +152,8 @@ static struct {
     {"info", "Print program status",                             cmd_info},
     {"x",    "Scan memory",                                      cmd_x   },
     {"p",    "expression evaluation",                            cmd_p   },
+    {"w",    "Set a watchpoint",                                 cmd_w   },
+    {"d",    "delete a watchpoint",                              cmd_d   },
 
     /* TODO: Add more commands */
 };
