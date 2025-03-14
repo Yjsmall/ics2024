@@ -51,16 +51,16 @@ static void decode_operand(Decode *s, int *rd, word_t *src1, word_t *src2, word_
     int      rs = BITS(i, 25, 21);
     *rd = (type == TYPE_U || type == TYPE_I) ? rt : BITS(i, 15, 11);
     switch (type) {
-    case TYPE_I:
-        src1R();
-        immI();
-        break;
-    case TYPE_U:
-        src1R();
-        immU();
-        break;
-    case TYPE_N: break;
-    default    : panic("unsupported type = %d", type);
+        case TYPE_I:
+            src1R();
+            immI();
+            break;
+        case TYPE_U:
+            src1R();
+            immU();
+            break;
+        case TYPE_N: break;
+        default    : panic("unsupported type = %d", type);
     }
 }
 
