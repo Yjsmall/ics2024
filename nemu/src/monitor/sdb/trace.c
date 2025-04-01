@@ -1,4 +1,6 @@
-#include "common.h"
+#include "sdb.h"
+
+// Instruction Trace
 #define IRINGBUF_SIZE 64
 typedef struct {
     uint32_t pc[IRINGBUF_SIZE];
@@ -8,11 +10,7 @@ typedef struct {
 } IRingBuf;
 
 static IRingBuf iringbuf;
-
-void iringbuf_init() {
-    memset(&iringbuf, 0, sizeof(IRingBuf)); // 清空缓冲区
-}
-
+// Instruction Trace
 void iringbuf_add(uint32_t pc, const char *disasm_str) {
     // 写入新的指令信息
     iringbuf.pc[iringbuf.head] = pc;
@@ -39,3 +37,5 @@ void handle_error(vaddr_t error_pc) {
         }
     }
 }
+
+// Memory Trace

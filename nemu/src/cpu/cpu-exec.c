@@ -14,6 +14,7 @@
 ***************************************************************************************/
 
 #include "utils.h"
+#include <sdb.h>
 #include <cpu/cpu.h>
 #include <cpu/decode.h>
 #include <cpu/difftest.h>
@@ -30,12 +31,6 @@ CPU_state       cpu = {};
 uint64_t        g_nr_guest_inst = 0;
 static uint64_t g_timer = 0; // unit: us
 static bool     g_print_step = false;
-
-void device_update();
-int  update_wp();
-
-void iringbuf_add(uint32_t pc, const char *disasm_str);
-void handle_error(vaddr_t error_pc);
 
 static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
 #ifdef CONFIG_ITRACE_COND

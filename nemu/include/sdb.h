@@ -1,3 +1,4 @@
+
 /***************************************************************************************
 * Copyright (c) 2014-2024 Zihao Yu, Nanjing University
 *
@@ -19,5 +20,14 @@
 #include <common.h>
 
 word_t expr(char *e, bool *success);
+
+void init_wp_pool();
+void add_wp(char *str);
+void del_wp(int no);
+void device_update();
+int  update_wp();
+
+void iringbuf_add(uint32_t pc, const char *disasm_str);
+void handle_error(vaddr_t error_pc);
 
 #endif
