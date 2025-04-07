@@ -30,4 +30,7 @@ int  update_wp();
 void iringbuf_add(uint32_t pc, const char *disasm_str);
 void handle_error(vaddr_t error_pc);
 
+void display_pread(paddr_t addr, int len);
+void display_pwrite(paddr_t addr, int len, word_t data);
+
 #endif
